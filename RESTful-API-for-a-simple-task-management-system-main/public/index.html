@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    <ul id="taskList"></ul>
+    <script>
+        const socket = io('http://localhost:4000');
+
+        // Function to render task data
+        function renderTask(task) {
+            const taskList = document.getElementById('taskList');
+            const listItem = document.createElement('li');
+            listItem.setAttribute('data-id', task._id);
+            listItem.textContent = `Task: ${task.title}, Description: ${task.description}, Completed: ${task.completed}`;
+            taskList.appendChild(listItem);
+        }
+
+        // Listen for task events
+        socket.on('taskCreated', (task) => {
+            
+            console.log('New task created:', task);
+            renderTask(task);
+        });
+
+        socket.on('taskRetrieved', (task) => {
+            
+            console.log('Task retrieved successfully:', task);
+            renderTask(task);
+        });
+
+        socket.on('tasksRetrieved', (task) => {
+            console.log('Tasks retrieved successfully:', task);
+            renderTask(task);
+        });
+
+        socket.on('taskUpdated', (task) => {
+            console.log('Task updated:', task);
+            renderTask(task);
+        });
+
+
+        socket.on('taskDeleted', (taskId) => {
+            console.log('Task deleted:', taskId);
+            const taskList = document.getElementById('taskList');
+            const listItem = taskList.querySelector(`[data-id="${taskId}"]`);
+            if (listItem) {
+                taskList.removeChild(listItem);
+            }
+        });
+
+        // Fetch tasks when connected
+        socket.on('connect', () => {
+            socket.emit('getTasks');
+        });
+    </script>
+</body>
+</html>
